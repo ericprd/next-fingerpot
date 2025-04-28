@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 export default function Users() {
   const [users, setUsers] = useState([]);
 
-  function clickHandler(userID) {
+  function clickRegHandler(userID) {
     const baseUrl = window.location.host;
     console.log(baseUrl);
     const registrationUrl = btoa(`${baseUrl}/api/register?user_id=${userID}`);
@@ -76,7 +76,7 @@ export default function Users() {
             <td>
               <button
                 className="cursor-auto border rounded p-1 text-xs"
-                onClick={() => clickHandler(user.id)}
+                onClick={() => clickRegHandler(user.id)}
               >
                 Scan
               </button>

@@ -1,4 +1,4 @@
-import { getUserFingers } from "@/query/get-user-finger";
+import { pool } from "@/query/pg-connect";
 import { getDeviceBySn } from "@/utils/getac";
 
 export default async function handler() {
@@ -12,7 +12,11 @@ export default async function handler() {
     const time = data[2];
     const sn = data[3];
 
-    const finger = await getUserFingers(user_id);
+    // const finger = await getUserFingers(user_id);
+    const fingers = await pool.query('select * from fingers where user_id = $1', [user_id]);
+
+    const finger = fingers.rows;
+
     const device = await getDeviceBySn();
 
     const salt = hash(

@@ -1,4 +1,4 @@
-import { getUserFingers } from "@/query/get-user-finger";
+import { pool } from "@/query/pg-connect";
 
 export default async function handler(req, res) {
     const securityKey = 'helloWorld'
@@ -10,7 +10,10 @@ export default async function handler(req, res) {
 
         if (!user_id) return res.status(400).send("Missing user_id parameter")
     
-        const data = await getUserFingers(user_id)
+        // const data = await getUserFingers(user_id)
+        const response = await pool.query("select * from fingers where user_id=$1", [user_id])
+        const data = response?.rows
+
         const resp = `${user_id};${data[0]?.finger_data};${securityKey};${time_limit};${baseUrl}/api/process-verification;${baseUrl}/api/getac;`
     
         res.send(resp)

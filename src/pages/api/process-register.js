@@ -1,5 +1,5 @@
 import { db } from "@/query/connect";
-import { getFromDB } from "@/query/get"
+import { pool } from "@/query/pg-connect";
 import { getDeviceBySn } from "@/utils/getac"
 import { hash } from "@/utils/hash"
 
@@ -32,23 +32,38 @@ export default async function handler(req, res) {
     // check if the hashed value is equal to vStamp
     if (vStamp?.toUpperCase() === salt.toUpperCase()) {
         // check the finger id that registered to the user
-        const { fid } = await getFromDB(
-            "SELECT MAX(finger_id) as fid FROM fingers WHERE user_id=?",
-            [user_id],
-        )
+        // const { fid } = await getFromDB(
+        //     "SELECT MAX(finger_id) as fid FROM fingers WHERE user_id=?",
+        //     [user_id],
+        // )
+
+        const response = await pool.query('select max(id) as fid from fingers where user_id=$1', [user_id])
+
+        console.log('fid', response.rows[0])
+
+        const {fid} = response.rows[0]
 
         // if the finger id is empty then the user has not registered their finger
         if (fid === 0 || !fid) {
-            const stmt = db.prepare(
-                "INSERT INTO fingers (user_id, finger_data) VALUES(?,?)",
-            )
-            stmt.run(user_id, regTemp, (err) => {
+            const id = crypto.randomUUID()
+            await pool.query('insert into fingers (id, user_id, finger_data) values($1, $2, $3)', [id, user_id, regTemp], (err) => {
                 if (err) {
+                    console.log(err)
                     res.send("error")
                 } else {
                     res.send("success")
                 }
             })
+            // const stmt = db.prepare(
+            //     "INSERT INTO fingers (user_id, finger_data) VALUES(?,?)",
+            // )
+            // stmt.run(user_id, regTemp, (err) => {
+            //     if (err) {
+            //         res.send("error")
+            //     } else {
+            //         res.send("success")
+            //     }
+            // })
         } else {
             res.status(429).json({ message: "Template already exist" })
         }
