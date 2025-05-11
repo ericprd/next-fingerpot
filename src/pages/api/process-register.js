@@ -1,5 +1,4 @@
-import { db } from "@/query/connect";
-import { getFromDB } from "@/query/get"
+import { supabaseCl } from "@/query/connect";
 import { getDeviceBySn } from "@/utils/getac"
 import { hash } from "@/utils/hash"
 
@@ -32,23 +31,28 @@ export default async function handler(req, res) {
     // check if the hashed value is equal to vStamp
     if (vStamp?.toUpperCase() === salt.toUpperCase()) {
         // check the finger id that registered to the user
-        const { fid } = await getFromDB(
-            "SELECT MAX(finger_id) as fid FROM fingers WHERE user_id=?",
-            [user_id],
-        )
+        // const { fid } = await getFromDB(
+        //     "SELECT MAX(finger_id) as fid FROM fingers WHERE user_id=?",
+        //     [user_id],
+        // )
+
+        const { data } = await supabaseCl.from('fingers').select('MAX(finger_id) as fid').eq('user_id', user_id)
+
+        const { fid } = data[0]
 
         // if the finger id is empty then the user has not registered their finger
         if (fid === 0 || !fid) {
-            const stmt = db.prepare(
-                "INSERT INTO fingers (user_id, finger_data) VALUES(?,?)",
-            )
-            stmt.run(user_id, regTemp, (err) => {
-                if (err) {
-                    res.send("error")
-                } else {
-                    res.send("success")
-                }
-            })
+            const { error } = await supabaseCl.from('fingers').insert({ user_id, finger_data: regTemp })
+            if (error) {
+                res.send("error")
+            } else {
+                res.send("success")
+            }
+            // const stmt = db.prepare(
+            //     "INSERT INTO fingers (user_id, finger_data) VALUES(?,?)",
+            // )
+            // stmt.run(user_id, regTemp, (err) => {
+            // })
         } else {
             res.status(429).json({ message: "Template already exist" })
         }

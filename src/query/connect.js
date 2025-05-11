@@ -1,3 +1,5 @@
+import { createClient } from "@supabase/supabase-js";
+
 const sqlite3 = require("sqlite3").verbose();
 
 export const db = new sqlite3.Database(
@@ -33,3 +35,5 @@ db.run(`
     )
   `)
 })
+
+export const supabaseCl = createClient('https://ildakvuloleysrlkdajr.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlsZGFrdnVsb2xleXNybGtkYWpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY5ODE3MzYsImV4cCI6MjA2MjU1NzczNn0.M__oghbs-LsAe76nyNQb50mKt4hNJHKKIyYZ9Nae7JI')
